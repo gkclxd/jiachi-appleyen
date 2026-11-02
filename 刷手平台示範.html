@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>小顏選刷手平台</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+/* Layout: one phone-width app column, centered on wide screens; sticky header, sticky bottom tab bar */
+:root{
+  --bg:#EEF1F4; --surface:#FFFFFF; --line:#DDE2E8; --line-soft:#EEF0F3;
+  --fg:#1A2330; --muted:#566170; --soft:#3F4A57;
+  --accent:#1F5F8B; --accent-fg:#FFFFFF; --accent-soft:#E3EEF7; --accent-line:#B9D1E4; --accent-sub:#D6E6F2;
+  --warn-bg:#FFF1E5; --warn-fg:#8A4200; --warn-line:#F0C79B;
+  --gray-bg:#EEF0F3; --gray-fg:#3F4A57;
+  --ok-bg:#E5F4EC; --ok-fg:#1E6B45;
+  --err:#B3261E; --demo-bg:#2B2F36; --demo-fg:#F4F6F8;
+  --f-body:'Noto Sans TC','PingFang TC','Microsoft JhengHei',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12171D; --surface:#1B222B; --line:#2C3642; --line-soft:#232C36;
+  --fg:#E8EDF2; --muted:#9AA6B4; --soft:#C3CCD6;
+  --accent:#5FA3D6; --accent-fg:#0E1A24; --accent-soft:#1D3242; --accent-line:#2F5674; --accent-sub:#1A2B38;
+  --warn-bg:#3A2614; --warn-fg:#F5B67A; --warn-line:#6A4422;
+  --gray-bg:#26303B; --gray-fg:#C3CCD6;
+  --ok-bg:#16352A; --ok-fg:#7FD3A8;
+  --err:#FF8A80; --demo-bg:#E8EDF2; --demo-fg:#12171D; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171D; --surface:#1B222B; --line:#2C3642; --line-soft:#232C36;
+  --fg:#E8EDF2; --muted:#9AA6B4; --soft:#C3CCD6;
+  --accent:#5FA3D6; --accent-fg:#0E1A24; --accent-soft:#1D3242; --accent-line:#2F5674; --accent-sub:#1A2B38;
+  --warn-bg:#3A2614; --warn-fg:#F5B67A; --warn-line:#6A4422;
+  --gray-bg:#26303B; --gray-fg:#C3CCD6;
+  --ok-bg:#16352A; --ok-fg:#7FD3A8;
+  --err:#FF8A80; --demo-bg:#E8EDF2; --demo-fg:#12171D; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+*{box-sizing:border-box}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.app{max-width:480px;margin:0 auto;min-height:100%;background:var(--bg);display:flex;flex-direction:column;border-inline:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line);
+  padding-block:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;align-items:center;justify-content:space-between;gap:8px}
+.brand{font-weight:700;font-size:17px;display:flex;align-items:center;gap:8px;min-width:0}
+.back{background:none;border:none;color:var(--accent);font-size:15px;min-height:44px;padding:0 4px 0 0}
+.who{font-size:13px;font-weight:500;background:var(--accent-soft);color:var(--accent);padding:4px 10px;border-radius:999px;white-space:nowrap}
+.demo-btn{font-size:12px;font-weight:700;background:var(--demo-bg);color:var(--demo-fg);border:none;border-radius:999px;padding:6px 10px;min-height:32px;white-space:nowrap}
+main{flex:1;padding-block:16px 24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:12px}
+h1{margin:0;font-size:22px;font-weight:700;text-wrap:balance}
+h2{margin:0;font-size:16px;font-weight:700}
+.sub{font-size:13px;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.alert{background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;text-align:left;width:100%}
+.alert b{color:var(--warn-fg);font-size:15px}
+.alert span{font-size:13px;color:var(--warn-fg)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.stage{border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:2px}
+.stage .lb{font-size:12px;font-weight:500}
+.stage .n{font-size:20px;font-weight:700;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage .n small{font-size:13px;font-weight:400;color:var(--muted)}
+.stage .amt{font-size:13px;color:var(--soft);font-variant-numeric:tabular-nums}
+.s-fix{background:var(--warn-bg)} .s-fix .lb{color:var(--warn-fg)}
+.s-check{background:var(--gray-bg)} .s-check .lb{color:var(--gray-fg)}
+.s-queue{background:var(--accent-soft)} .s-queue .lb{color:var(--accent)}
+.s-paid{background:var(--ok-bg)} .s-paid .lb{color:var(--ok-fg)}
+.pill{font-size:12px;font-weight:500;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.p-fix{background:var(--warn-bg);color:var(--warn-fg)} .p-check{background:var(--gray-bg);color:var(--gray-fg)}
+.p-queue{background:var(--accent-soft);color:var(--accent)} .p-paid{background:var(--ok-bg);color:var(--ok-fg)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border-radius:999px;padding:6px 14px;min-height:36px;font-size:13px;font-weight:500;border:1px solid var(--line);background:var(--surface);color:var(--soft)}
+.chip.sq{border-radius:8px}
+.chip[aria-pressed="true"],.chip[aria-checked="true"],.chip[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.seg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));background:var(--line);border-radius:10px;padding:4px;gap:4px}
+.seg button{border:none;border-radius:8px;min-height:40px;font-size:14px;font-weight:500;background:transparent;color:var(--soft)}
+.seg button[aria-selected="true"]{background:var(--surface);color:var(--fg)}
+.btn{min-height:48px;border-radius:10px;border:none;background:var(--accent);color:var(--accent-fg);font-size:16px;font-weight:700;padding:0 16px;display:flex;align-items:center;justify-content:center;width:100%}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:var(--surface);color:var(--accent);border:1px solid var(--accent);font-size:15px;font-weight:500;min-height:44px}
+.btn.dash{background:var(--surface);color:var(--accent);border:1px dashed var(--accent);font-size:14px;font-weight:500;min-height:44px}
+.link{background:none;border:none;color:var(--accent);font-size:13px;font-weight:500;padding:0;min-height:32px;text-align:left}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.item .t{font-size:15px;font-weight:700;min-width:0}
+.item .m{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--muted)}
+.item .m b{color:var(--fg);font-variant-numeric:tabular-nums}
+.item .note{font-size:13px;color:var(--muted)}
+.p-hold{background:var(--gray-bg);color:var(--err)}
+.holdbox{border-top:1px solid var(--line-soft);margin-top:4px;padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.holdbox .row{gap:8px}
+.item .calc{font-size:13px;color:var(--soft);background:var(--gray-bg);border-radius:6px;padding:4px 8px;align-self:flex-start;font-variant-numeric:tabular-nums}
+.item .calc b{color:var(--fg)}
+.item .note.warn{color:var(--warn-fg)}
+.tag{font-size:12px;font-weight:700;color:var(--accent);border:1px solid var(--accent-line);border-radius:6px;padding:1px 6px;white-space:nowrap}
+.hero{background:var(--accent);color:var(--accent-fg);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:4px}
+.hero .big{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums}
+.hero .s{font-size:13px;opacity:.85}
+.line{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid var(--line-soft);padding-top:8px}
+.line .c{display:flex;flex-direction:column;gap:1px}
+.line .amt{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+.fine{font-size:12px;color:var(--muted);line-height:1.7}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:500}
+input[type=text],input[type=tel],select{font-size:15px;padding:10px;min-height:44px;border:1px solid var(--line);border-radius:8px;background:var(--surface);width:100%}
+input.bad{border-color:var(--err)}
+.msg{font-size:12px;font-weight:500}
+.msg.ok{color:var(--ok-fg)} .msg.err{color:var(--err)}
+.check{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line-soft);cursor:pointer}
+.check:last-child{border-bottom:none}
+.check input{width:22px;height:22px;margin:2px 0 0;accent-color:var(--accent);flex:none}
+dl.kv{margin:0;display:grid;grid-template-columns:72px minmax(0,1fr);row-gap:4px;font-size:14px}
+dl.kv dt{color:var(--muted)} dl.kv dd{margin:0;font-weight:500;min-width:0}
+.bubble{max-width:86%;padding:10px 12px;font-size:14px;line-height:1.7;white-space:pre-line}
+.me{align-self:flex-end;background:var(--accent);color:var(--accent-fg);border-radius:14px 14px 4px 14px}
+.ai{align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:14px 14px 14px 4px;display:flex;flex-direction:column;gap:6px}
+.chat{display:flex;flex-direction:column;gap:10px}
+.ask{display:flex;gap:8px}
+.ask input{border-radius:22px;padding:10px 14px}
+.send{min-width:44px;min-height:44px;border-radius:22px;border:none;background:var(--accent);color:var(--accent-fg);display:flex;align-items:center;justify-content:center}
+nav.tabs{position:sticky;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+  padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+nav.tabs button{background:none;border:none;border-top:3px solid transparent;min-height:60px;font-size:13px;color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0}
+nav.tabs button svg{width:20px;height:20px}
+nav.tabs button[aria-current="page"]{color:var(--accent);font-weight:700;border-top-color:var(--accent)}
+.sheet-wrap{position:fixed;inset:0;z-index:20;background:rgba(10,14,20,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:480px;background:var(--surface);border-radius:16px 16px 0 0;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px;max-height:85%;overflow:auto}
+.sheet .op{display:flex;flex-direction:column;gap:2px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 12px;min-height:44px}
+.sheet .op b{font-size:14px} .sheet .op span{font-size:12px;color:var(--muted)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--demo-bg);color:var(--demo-fg);font-size:14px;padding:10px 16px;border-radius:10px;max-width:min(440px,calc(100% - 32px));text-align:center}
+.empty{font-size:14px;color:var(--muted);text-align:center;padding:24px 0}
+.ann{display:flex;flex-direction:column;gap:4px}
+.mono{font-family:var(--f-body);font-size:12px;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.cols,.cols3,.list,.split,.stack{display:flex;flex-direction:column;gap:12px}
+@media (min-width: 960px){
+  .app{max-width:1280px;display:grid;grid-template-columns:232px minmax(0,1fr);grid-template-rows:auto 1fr;grid-template-areas:"top top" "nav main";border-inline:none}
+  header.top{grid-area:top;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+  main{grid-area:main;padding-block:28px 48px;padding-left:32px;padding-right:max(32px,env(safe-area-inset-right,0px));gap:16px}
+  nav.tabs{grid-area:nav;position:sticky;top:calc(69px + env(safe-area-inset-top,0px));align-self:start;display:flex;flex-direction:column;gap:4px;background:transparent;border-top:none;border-right:1px solid var(--line);padding:16px 12px;padding-left:max(12px,env(safe-area-inset-left,0px));height:calc(100vh - 69px)}
+  nav.tabs button{flex-direction:row;justify-content:flex-start;gap:12px;min-height:44px;padding:0 14px;border-top:none;border-radius:10px;font-size:15px}
+  nav.tabs button:hover{background:var(--surface)}
+  nav.tabs button[aria-current="page"]{background:var(--accent-soft)}
+  h1{font-size:28px}
+  .cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+  .cols3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}
+  .list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
+  .split{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px;align-items:start}
+  .split .stack{position:sticky;top:96px}
+  .home-actions{max-width:520px}
+  .alert{max-width:760px}
+  main.narrow>*{max-width:760px;width:100%}
+  .hero{max-width:520px}
+  .sheet-wrap{align-items:center}
+  .sheet{border-radius:16px;max-width:520px;padding-bottom:16px}
+  .toast{bottom:32px}
+}
+@media (min-width: 960px) and (max-width: 1179px){
+  .cols3{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (prefers-reduced-motion: no-preference){.toast{animation:pop .2s ease-out}@keyframes pop{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="top" id="top"></header>
+  <main id="view" aria-live="polite"></main>
+  <nav class="tabs" aria-label="主選單" id="tabs"></nav>
+</div>
+<div id="sheet" hidden></div>
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script>
+(function(){
+'use strict';
+/* ---------- 示範資料（全部為虛構） ---------- */
+const TODAY = '10/30';
+const NEXT = '11/2（一）';
+const SHOPEE_CUTOVER = '261001'; // 蝦皮訂單日期切換點 2026/10/01（示範）
+const ANN = [
+  {code:'P1019TWD2988QT6',  item:'Pencil Pro',      price:2988,  date:'10/19', profit:'每支約 $180'},
+  {code:'S1020TWD14200QT10',item:'Switch 2 主機',    price:14200, date:'10/20', profit:'每台約 $650'},
+  {code:'A1024TWD6990QT20', item:'AirPods Pro 3',   price:6990,  date:'10/24', profit:'每組約 $320'},
+  {code:'I1018TWD14125QT8', item:'iPad Air 11 吋',  price:14125, date:'10/18', profit:'每台約 $700'}
+];
+const S = {
+  user:'王＊明',
+  codes:{
+    B123: {bank:'玉山銀行',bankCode:'808',branch:'北高雄',branchCode:'0347',holder:'王＊明',last4:'6499',ok:true, updated:'2026/08/05',bound:'註冊時綁定'},
+    B123A:{bank:'中國信託',bankCode:'822',branch:'延吉',  branchCode:'1241',holder:'王＊明',last4:'8812',ok:true, updated:'2026/09/12',bound:'核准於 2026/09/13'},
+    C2001:{bank:'國泰世華',bankCode:'013',branch:'三民',  branchCode:'',    holder:'王＊明',last4:'3305',ok:false,updated:'2026/10/20',bound:'核准於 2026/10/21'}
+  },
+  pending:[], // 綁定申請
+  batches:{
+    '23O2610167':{kind:'shopee',date:'10/23',paid:'10/24'},
+    '27O1835000':{kind:'buy',date:'10/27',paid:'10/28'},
+    '30O2173600':{kind:'buy',date:'10/30',paid:null},
+    '30O8242206':{kind:'shopee',date:'10/30',paid:null}
+  },
+  buy:[
+    {id:'b1', box:'K17601', recv:'B123', payee:null, title:'AirPods Pro 3', qty:4, date:'10/28', claim:null, inv:null, amt:null, batch:null},
+    {id:'b3', box:'K17602', recv:'B123', payee:null, title:'Pencil Pro', qty:6, date:'10/28', claim:null, inv:null, amt:null, batch:null},
+    {id:'b10', box:'K17598',recv:'C2001',payee:null, title:'Switch 2 主機', qty:1, date:'10/26', claim:null, inv:null, amt:null, batch:null},
+    {id:'b2', box:'K17590', recv:'B123', payee:'B123', title:'iPad Air 11 吋', qty:1, date:'10/27', claim:'I1018TWD14125QT8', inv:'XX23450011', amt:null, batch:null},
+    {id:'b4', box:'K17585', recv:'B123A',payee:'B123A',title:'iPad Air 11 吋', qty:3, date:'10/25', claim:'I1018TWD14125QT8', inv:'XX23450002', amt:42375, batch:null},
+    {id:'b5', box:'K17580', recv:'B123', payee:'B123', title:'Switch 2 主機', qty:1, date:'10/24', claim:'S1020TWD14200QT10',inv:'XX23450003', amt:14200, batch:null},
+    {id:'b6', box:'K17560', recv:'B123A',payee:'B123A',title:'iPad Air 11 吋', qty:2, date:'10/20', claim:'I1018TWD14125QT8', inv:'XX23440004', amt:28250, batch:'30O2173600'},
+    {id:'b7', box:'K17555', recv:'B123', payee:'B123', title:'Pencil Pro', qty:6, date:'10/19', claim:'P1019TWD2988QT6',  inv:'XX23440005', amt:17928, batch:'30O2173600'},
+    {id:'b8', box:'K17562', recv:'B123', payee:'B123', title:'Switch 2 主機', qty:4, date:'10/21', claim:'S1020TWD14200QT10',inv:'XX23440006', amt:56800, batch:'30O2173600'},
+    {id:'b9', box:'K17501', recv:'B123', payee:'B123', title:'AirTag 4 入', qty:3, date:'10/14', claim:'K1010TWD3100QT3',  inv:'XX23410007', amt:9300,  batch:'27O1835000'}
+  ],
+  shopee:[
+    {id:'s6', payee:'B123', order:'2610290K1L2M3N', inv:'XX55550006', pre:20188, rate:null,  amt:null,  batch:null},
+    {id:'s7', payee:'C2001',order:'2610220X7Y8Z9A', inv:'XX55550007', pre:19888, rate:null,  amt:null,  batch:null, hold:{type:'return',status:'done',date:'10/23',doneDate:'10/24',reason:'買家取消訂單'}},
+    {id:'s1', payee:'C2001',order:'2610260A1B2C3D', inv:'XX55550001', pre:20188, rate:0.9,   amt:18169, batch:null},
+    {id:'s2', payee:'B123', order:'2610250E5F6G7H', inv:'XX55550002', pre:19888, rate:0.91,  amt:18098, batch:null},
+    {id:'s3', payee:'B123', order:'2610210EFGH456', inv:'XX55550003', pre:59664, rate:0.91,  amt:54294, batch:'30O8242206'},
+    {id:'s4', payee:'C2001',order:'2610200P9Q8R7S', inv:'XX55550004', pre:55888, rate:0.905, amt:50579, batch:'30O8242206'},
+    {id:'s5', payee:'C2001',order:'2610150T1U2V3W', inv:'XX55550005', pre:21284, rate:0.91,  amt:19368, batch:'23O2610167'}
+  ],
+  chat:[]
+};
+
+/* ---------- 狀態推導 ---------- */
+const money = n => '$' + Math.round(n).toLocaleString('en-US');
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LABEL = {fix:'待補資料', check:'待核對', queue:'已排入撥款', paid:'已匯款', hold:'退貨／移除'};
+const HOLDNAME = {remove:'移除', return:'退貨'};
+function holdNote(it){ const h=it.hold; return h.status==='pending' ? '已申請' + HOLDNAME[h.type] + '（' + h.date + '），事務所處理中；這筆不會排入撥款' + (h.reason ? '。原因：' + h.reason : '') : '事務所已於 ' + h.doneDate + ' 標註' + HOLDNAME[h.type] + '，不會撥款' + (h.reason ? '。原因：' + h.reason : ''); }
+function codeOf(it){ return it.payee || it.recv; }
+function statusBuy(it){
+  if (it.hold) return 'hold';
+  if (it.batch) return S.batches[it.batch].paid ? 'paid' : 'queue';
+  if (!it.claim) return 'fix';
+  if (!it.amt) return 'fix';
+  return 'check';
+}
+function statusShopee(it){
+  if (it.hold) return 'hold';
+  if (it.batch) return S.batches[it.batch].paid ? 'paid' : 'queue';
+  if (it.amt == null) return 'fix';
+  return 'check';
+}
+function noteBuy(it){
+  const st = statusBuy(it);
+  if (st==='hold') return holdNote(it);
+  if (st==='fix') return !it.claim ? '缺請款代碼與發票號碼，請到「進貨請款」補填' : '金額尚未算出，後台算出後自動更新';
+  if (st==='check') { const a = S.codes[codeOf(it)]; return a && !a.ok ? '收款帳戶分行待確認，確認後才會排入撥款' : '等待 ' + NEXT + ' 彙整'; }
+  if (st==='queue') return S.batches[it.batch].date + ' 批次 ' + it.batch + '，待公司匯款';
+  return S.batches[it.batch].paid + ' 已匯款';
+}
+function noteShopee(it){
+  const st = statusShopee(it);
+  if (st==='hold') return holdNote(it);
+  if (st==='fix') return '等倉管理貨後算出匯款金額';
+  if (st==='check') { const a = S.codes[it.payee]; return a && !a.ok ? '收款帳戶分行待確認，確認後才會排入撥款' : '等待 ' + NEXT + ' 彙整'; }
+  if (st==='queue') return S.batches[it.batch].date + ' 批次 ' + it.batch + '，待公司匯款';
+  return S.batches[it.batch].paid + ' 已匯款';
+}
+function codesList(){ return Object.keys(S.codes); }
+function acctShort(c){ const a=S.codes[c]; return a ? a.bank.replace('銀行','') + ' ＊' + a.last4 : '未填收款帳戶'; }
+
+/* ---------- 路由與共用框架 ---------- */
+const UI = {tab:'home', page:null, code:'all', dKind:'buy', dCode:'all', dFilter:'all', sel:{}, cf:{}, edit:{}, spCode:'B123', spRows:[{o:'',i:''}], spMsgs:[], bindMsg:''};
+const ICON = {
+  shop:'<path d="M4 7h16l-1.5 11h-13z"/><path d="M9 7a3 3 0 0 1 6 0"/>',
+  home:'<path d="M4 20V10l8-6 8 6v10"/><path d="M10 20v-5h4v5"/>',
+  pay:'<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/>',
+  me:'<circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
+  qa:'<path d="M5 5h14v10H9l-4 4z"/>'
+};
+const TABS = [['shop','可買商品'],['home','我的進度'],['pay','款項'],['me','我的資料'],['qa','問答']];
+function go(tab, page){ UI.tab = tab; UI.page = page||null; render(); window.scrollTo(0,0); }
+function renderTop(){
+  const back = UI.page ? `<button class="back" data-act="back">‹ 返回</button>` : `<span>小顏選 刷手平台</span>`;
+  document.getElementById('top').innerHTML =
+    `<div class="brand">${back}</div>
+     <div class="row" style="gap:6px"><span class="who">${esc(S.user)} · ${codesList().length} 個編號</span>
+     <button class="demo-btn" data-act="demo" aria-haspopup="dialog">示範操作</button></div>`;
+}
+function renderTabs(){
+  document.getElementById('tabs').innerHTML = TABS.map(([k,l]) =>
+    `<button data-tab="${k}" ${UI.tab===k && !UI.page ? 'aria-current="page"' : ''}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>${l}</button>`).join('');
+}
+function toast(t){ const el=document.getElementById('toast'); el.textContent=t; el.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>{el.hidden=true;},2600); }
+
+/* ---------- 畫面：我的進度 ---------- */
+function stageSum(list, stFn, codes){
+  const out = {fix:[0,0,false],check:[0,0,false],queue:[0,0,false],paid:[0,0,false],hold:[0,0,false]};
+  list.forEach(it => { if (codes.indexOf(codeOf(it))<0) return; const st=stFn(it); out[st][0]++; if (it.amt==null) out[st][2]=true; else out[st][1]+=it.amt; });
+  return out;
+}
+function stageGrid(sum){
+  return ['fix','check','queue','paid'].map(k => {
+    const [n,a,unk] = sum[k];
+    const amt = n===0 ? '—' : (unk && a===0 ? '金額待確認' : money(a) + (unk ? ' 起' : ''));
+    return `<div class="stage s-${k}"><div class="lb">${k==='paid'?'已匯款':LABEL[k]}</div><div class="n">${n} <small>筆</small></div><div class="amt">${amt}</div></div>`;
+  }).join('');
+}
+function holdLine(list, fn, codes){
+  const n = list.filter(it => codes.indexOf(codeOf(it))>=0 && fn(it)==='hold').length;
+  return n ? `<div class="fine" style="margin:0">另有 ${n} 筆退貨／移除，不會撥款</div>` : '';
+}
+function actions(it, st){
+  if (st==='queue' || st==='paid') return `<div class="fine">已有撥款批次碼，不可移除或退貨。如有問題請聯繫事務所。</div>`;
+  if (st==='hold') return it.hold.status==='pending' ? `<div class="row" style="justify-content:flex-end"><button class="link" data-hwithdraw="${it.id}">撤回申請</button></div>` : '';
+  if (UI.holdOpen!==it.id) return `<div class="row" style="justify-content:flex-end"><button class="link" data-hopen="${it.id}" style="color:var(--err)">移除／申請退貨</button></div>`;
+  return `<div class="holdbox">
+    <div class="chips" role="radiogroup" aria-label="申請類型">
+      <button class="chip sq" role="radio" aria-checked="${UI.holdType==='remove'}" data-htype="remove">移除（登記錯誤）</button>
+      <button class="chip sq" role="radio" aria-checked="${UI.holdType==='return'}" data-htype="return">申請退貨</button>
+    </div>
+    <label class="f" for="hr_${it.id}">原因（選填）<input id="hr_${it.id}" type="text" autocomplete="off" placeholder="例：買家取消、訂單號填錯"></label>
+    <div class="fine">送出後由事務所在後台標註，這筆不會排入撥款。事務所處理前可以撤回。</div>
+    <div class="row" style="justify-content:flex-end"><button class="btn ghost" data-act="holdCancel" style="width:auto;padding:0 16px">取消</button><button class="btn" data-hsubmit="${it.id}" style="width:auto;font-size:15px">送出申請</button></div>
+  </div>`;
+}
+function findItem(id){ return S.buy.concat(S.shopee).find(it=>it.id===id); }
+function vHome(){
+  const codes = UI.code==='all' ? codesList() : [UI.code];
+  const fixBuy = S.buy.filter(it => codes.indexOf(codeOf(it))>=0 && statusBuy(it)==='fix');
+  const noClaim = fixBuy.filter(it=>!it.claim).length;
+  const badAcct = codes.filter(c => !S.codes[c].ok);
+  let alerts = '';
+  if (fixBuy.length) alerts += `<button class="alert" data-go="claim"><b>有 ${fixBuy.length} 筆進貨需要處理</b><span>${noClaim ? noClaim + ' 筆缺請款代碼' : ''}${noClaim && fixBuy.length-noClaim ? '、' : ''}${fixBuy.length-noClaim ? (fixBuy.length-noClaim) + ' 筆金額尚未算出' : ''}。補齊後才會排入下一次撥款。</span><span style="font-weight:500">前往進貨請款 ›</span></button>`;
+  if (badAcct.length) alerts += `<button class="alert" data-tab="me"><b>${badAcct.join('、')} 的收款帳戶缺分行代號</b><span>只填了分行名稱，事務所需人工確認，可能延後撥款。</span><span style="font-weight:500">前往我的資料 ›</span></button>`;
+  const qBy = codes.map(c => {
+    const a = S.buy.concat(S.shopee).filter(it => codeOf(it)===c && it.batch && !S.batches[it.batch].paid).reduce((s,it)=>s+it.amt,0);
+    return `<div class="line"><div class="c"><b style="font-size:14px">${c}</b><span class="sub" style="font-size:12px">匯入 ${esc(acctShort(c))}</span></div><div class="amt">${a?money(a):'—'}</div></div>`;
+  }).join('');
+  return `
+  <div><h1>我的進度</h1><div class="sub">資料更新 ${TODAY}（四）14:00 · 下一次彙整 ${NEXT}</div></div>
+  ${alerts}
+  <div class="grid2 home-actions"><button class="btn" data-go="claim" style="font-size:15px">進貨請款</button><button class="btn" data-go="shopee" style="font-size:15px">＋ 新增蝦皮訂單</button></div>
+  <div class="chips" role="tablist" aria-label="切換編號">
+    ${['all'].concat(codesList()).map(c=>`<button class="chip" role="tab" aria-selected="${UI.code===c}" data-code="${c}">${c==='all'?'全部編號':c}</button>`).join('')}
+  </div>
+  <div class="cols3">
+  <section class="card"><div class="row"><h2>進貨</h2><button class="link" data-detail="buy">明細 ›</button></div><div class="grid2">${stageGrid(stageSum(S.buy,statusBuy,codes))}</div>${holdLine(S.buy,statusBuy,codes)}</section>
+  <section class="card"><div class="row"><h2>蝦皮空刷</h2><button class="link" data-detail="shopee">明細 ›</button></div><div class="grid2">${stageGrid(stageSum(S.shopee,statusShopee,codes))}</div>${holdLine(S.shopee,statusShopee,codes)}</section>
+  <section class="card" style="gap:8px"><h2>待匯款 · 依編號</h2>${qBy}</section>
+  </div>`;
+}
+
+/* ---------- 畫面：款項 ---------- */
+function vPay(){
+  const all = S.buy.concat(S.shopee);
+  const waiting = all.filter(it => it.batch && !S.batches[it.batch].paid);
+  const wb = waiting.filter(it=>S.buy.indexOf(it)>=0).reduce((s,it)=>s+it.amt,0);
+  const ws = waiting.filter(it=>S.shopee.indexOf(it)>=0).reduce((s,it)=>s+it.amt,0);
+  const keys = Object.keys(S.batches).sort((a,b)=>{ const pa=S.batches[a].paid?1:0, pb=S.batches[b].paid?1:0; return pa-pb || (S.batches[b].date>S.batches[a].date?1:-1); });
+  const cards = keys.map(k => {
+    const b = S.batches[k]; const items = all.filter(it=>it.batch===k); if (!items.length) return '';
+    const by = {}; items.forEach(it => { const c=codeOf(it); by[c]=by[c]||{n:0,a:0}; by[c].n++; by[c].a+=it.amt; });
+    const lines = Object.keys(by).map(c => `<div class="line"><div class="c"><span style="font-size:14px;font-weight:500">${c} <span class="sub" style="font-size:12px">· ${by[c].n} 筆</span></span><span class="sub" style="font-size:12px">匯入 ${esc(acctShort(c))}</span></div><div class="amt">${money(by[c].a)}</div></div>`).join('');
+    return `<article class="card" style="gap:8px"><div class="row"><div><div style="font-weight:700">${b.date} ${b.kind==='buy'?'進貨':'蝦皮空刷'}</div><div class="sub" style="font-size:12px">批次碼 <span class="mono">${k}</span> · ${b.paid ? b.paid+' 已匯出' : '待公司匯款'}</div></div><span class="pill ${b.paid?'p-paid':'p-queue'}">${b.paid?'已匯款':'待匯款'}</span></div>${lines}</article>`;
+  }).join('');
+  return `<h1>款項</h1>
+  <section class="hero"><div class="s">全部編號 · 已排入撥款、等待公司匯款</div><div class="big">${money(wb+ws)}</div><div class="s">進貨 ${money(wb)} ＋ 蝦皮空刷 ${money(ws)}</div></section>
+  <h2 style="color:var(--soft);font-size:15px">撥款批次</h2><div class="cols">${cards}</div>
+  <p class="fine" style="margin:0">・每個編號各自匯入該編號的收款帳戶，金額為該編號在批次內加總後四捨五入至元。<br>・「已匯款」表示公司已匯出，實際入帳時間依各銀行為準。</p>`;
+}
+
+/* ---------- 畫面：明細 ---------- */
+function vDetail(){
+  const isBuy = UI.dKind==='buy';
+  const list = (isBuy?S.buy:S.shopee).filter(it => (UI.dCode==='all'||codeOf(it)===UI.dCode) && (UI.dFilter==='all'|| (isBuy?statusBuy(it):statusShopee(it))===UI.dFilter));
+  const rows = list.map(it => {
+    const st = isBuy?statusBuy(it):statusShopee(it);
+    const title = isBuy ? `${esc(it.title)} × ${it.qty}` : `訂單 <span class="mono">${esc(it.order)}</span>`;
+    const meta = isBuy ? `箱號 ${it.box} · ${it.date} 到倉${it.claim?' · <span class="mono">'+esc(it.claim)+'</span>':''}` : `20${it.order.slice(0,2)}/${it.order.slice(2,4)}/${it.order.slice(4,6)} · 發票 ${esc(it.inv)}`;
+    return `<article class="item"><div class="row"><div class="row" style="justify-content:flex-start;min-width:0;gap:6px"><span class="tag">${codeOf(it)}</span><span class="t">${title}</span></div><span class="pill p-${st}">${LABEL[st]}</span></div>
+      <div class="m"><span>${meta}</span><b>${it.amt?money(it.amt):'—'}</b></div>${isBuy ? '' : `<div class="calc">${it.rate!=null ? `折扣前 ${money(it.pre)} × ${it.rate} = <b>${money(it.amt)}</b>` : `折扣前 ${money(it.pre)} × 補貼率（理貨後確定）`}</div>`}<div class="note ${st==='fix'?'warn':''}">${esc(isBuy?noteBuy(it):noteShopee(it))}</div>${isBuy ? (it.claim && !it.batch ? `<div class="row" style="justify-content:flex-end"><button class="link" data-edit="${it.id}">修改請款資料 ›</button></div>` : '') : actions(it, st)}</article>`;
+  }).join('') || '<div class="empty">這個條件目前沒有資料</div>';
+  return `<h1>進度明細</h1>
+  <div class="seg" role="tablist" aria-label="類別"><button role="tab" aria-selected="${isBuy}" data-dkind="buy">進貨</button><button role="tab" aria-selected="${!isBuy}" data-dkind="shopee">蝦皮空刷</button></div>
+  <div class="chips" aria-label="編號">${['all'].concat(codesList()).map(c=>`<button class="chip sq" aria-pressed="${UI.dCode===c}" data-dcode="${c}">${c==='all'?'全部編號':c}</button>`).join('')}</div>
+  <div class="chips" aria-label="狀態">${[['all','全部狀態'],['fix','待補資料'],['check','待核對'],['queue','已排入撥款'],['paid','已匯款']].concat(isBuy ? [] : [['hold','退貨／移除']]).map(([k,l])=>`<button class="chip" aria-pressed="${UI.dFilter===k}" data-dfilter="${k}">${l}</button>`).join('')}</div>
+  <div class="list">${rows}</div>`;
+}
+
+/* ---------- 畫面：進貨請款 ---------- */
+function parseClaim(c){ const m = c.trim().toUpperCase().match(/^([A-Z])(\d{2})(\d{2})TWD(\d+)QT(\d+)$/); return m ? {date:+m[2]+'/'+(+m[3]), price:+m[4], qty:+m[5]} : null; }
+const INV_RE = /^[A-Z]{2}\d{8}(\s+[A-Z]{2}\d{8})*$/;
+function cf(it){
+  if (!UI.cf[it.id]) UI.cf[it.id] = it.claim
+    ? {payee: it.payee, code: it.claim, inv: it.inv}
+    : {payee: S.codes[it.recv] ? it.recv : codesList()[0], code:'', inv:''};
+  return UI.cf[it.id];
+}
+function claimTodo(){ return S.buy.filter(it => !it.batch && !it.hold && (!it.claim || UI.edit[it.id])); }
+function codeHint(code, qty){
+  const c = code.trim(); if (!c) return '<span class="sub" style="font-size:12px">可直接輸入，或從清單選擇公告代碼</span>';
+  const p = parseClaim(c);
+  if (!p) return '<span style="color:var(--warn-fg)">格式和常見的請款代碼不同，請再確認一次（仍可送出）</span>';
+  const known = ANN.some(a => a.code === c.toUpperCase());
+  return '<span style="color:var(--ok-fg)">' + p.date + ' 公告 · 單價 ' + money(p.price) + ' · 預估 ' + money(p.price*qty) + '（以後台計算為準）</span>'
+    + (known ? '' : '<span class="sub" style="font-size:12px">公告清單還沒有這個代碼，送出後由事務所核對</span>');
+}
+function cfDone(f){ return !!f.code.trim() && INV_RE.test(f.inv.trim().toUpperCase()); }
+function claimCount(){ return claimTodo().filter(it => cfDone(cf(it))).length; }
+function vClaim(){
+  const todo = claimTodo();
+  const n = claimCount();
+  const cards = todo.map((it,k) => { const f = cf(it); const invBad = f.inv && !INV_RE.test(f.inv.trim().toUpperCase());
+    return `<section class="card" style="gap:8px">
+    <div class="row"><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><b>${esc(it.title)} × ${it.qty}</b><span class="sub" style="font-size:12px">箱號 <b class="mono" style="color:var(--fg)">${it.box}</b> · ${it.date} 到倉 · 收件編號 ${it.recv}</span></div>${it.claim ? '<span class="pill p-queue">修改中</span>' : '<span class="pill p-fix">待填寫</span>'}</div>
+    ${it.claim ? `<div class="fine">送出後以箱號 ${it.box} 覆蓋原本的請款資料。<button class="link" data-unedit="${it.id}" style="font-size:12px;min-height:0">取消修改</button></div>` : ''}
+    <label class="f" for="cp_${it.id}">撥款到哪個刷手代碼<select id="cp_${it.id}" data-cf="${it.id}" data-field="payee">${codesList().map(c=>`<option value="${c}" ${f.payee===c?'selected':''}>${c}（${esc(acctShort(c))}）</option>`).join('')}</select></label>
+    <label class="f" for="cc_${it.id}">請款代碼<input id="cc_${it.id}" data-cf="${it.id}" data-field="code" list="annList" type="text" autocomplete="off" autocapitalize="characters" placeholder="輸入或從清單選擇，例：P1019TWD2988QT6" value="${esc(f.code)}"></label>
+    <div class="msg" id="ch_${it.id}" style="display:flex;flex-direction:column">${codeHint(f.code, it.qty)}</div>
+    <label class="f" for="ci_${it.id}">發票號碼<input id="ci_${it.id}" data-cf="${it.id}" data-field="inv" type="text" autocomplete="off" placeholder="例：FQ78256057，多張用空格分開" value="${esc(f.inv)}" class="${invBad?'bad':''}"></label>
+    ${k>0 ? `<button class="link" data-copy="${it.id}" data-from="${todo[k-1].id}" style="align-self:flex-start">同上一筆（複製撥款代碼、請款代碼、發票）</button>` : ''}
+  </section>`; }).join('');
+  return `<div><h1>進貨請款</h1><div class="sub">倉管已收到、還沒填請款資料的貨件。每筆各自填寫，填好的會一起送出。每箱以箱號為唯一碼，修改時直接覆蓋舊資料。</div></div>
+  <datalist id="annList">${ANN.map(a=>`<option value="${a.code}">${esc(a.item)} · ${a.date} 公告</option>`).join('')}</datalist>
+  ${todo.length ? `<div class="list">${cards}</div>
+  <div class="home-actions"><button class="btn" data-act="submitClaim" id="claimSubmit" ${n?'':'disabled'}>送出已填好的 ${n} 筆</button></div>` : '<div class="card"><div class="empty">目前沒有待請款的貨件</div></div>'}
+  <p class="fine" style="margin:0">請款代碼可以直接輸入，也可以從清單選。公告清單更新較慢，找不到時照公告手寫即可。金額由後台依請款代碼計算，事務所週一、週四核對並排入撥款。</p>`;
+}
+function updClaim(){ const n = claimCount(); const b = document.getElementById('claimSubmit'); if (b){ b.disabled = !n; b.textContent = '送出已填好的 ' + n + ' 筆'; } }
+
+/* ---------- 畫面：新增蝦皮訂單 ---------- */
+function checkOrder(o, i, idx){
+  o = o.trim().toUpperCase(); i = i.trim().toUpperCase();
+  if (!o && !i) return {state:'blank'};
+  if (!/^\d{6}[A-Z0-9]{8}$/.test(o)) return {state:'err', msg:'訂單編號應為 14 碼，前 6 碼是日期，例：2610300ABCD123'};
+  if (o.slice(0,6) < SHOPEE_CUTOVER) return {state:'err', msg:'這是切換日前的訂單，請依原本方式登記'};
+  const hit = S.shopee.find(s=>s.order===o);
+  if (hit) return {state:'err', msg:'這筆訂單已由 ' + hit.payee + ' 登記過，請勿重複'};
+  if (UI.spRows.some((r,k)=>k<idx && r.o.trim().toUpperCase()===o)) return {state:'err', msg:'這次已經填過這筆訂單'};
+  if (!/^[A-Z]{2}\d{8}$/.test(i)) return {state:'err', msg:'發票號碼格式為 2 個英文字母加 8 位數字'};
+  return {state:'ok', msg:'格式正確'};
+}
+function vShopee(){
+  const res = UI.spRows.map((r,k)=>checkOrder(r.o,r.i,k));
+  const okN = res.filter(r=>r.state==='ok').length;
+  const rows = UI.spRows.map((r,k) => `<div style="display:flex;flex-direction:column;gap:6px;padding-bottom:10px;border-bottom:1px solid var(--line-soft)">
+    <div class="grid2" style="gap:6px">
+      <label class="f" for="o${k}" style="font-size:12px;color:var(--muted);font-weight:400">訂單編號<input id="o${k}" data-ro="${k}" type="text" autocomplete="off" placeholder="2610300ABCD123" value="${esc(r.o)}" class="${res[k].state==='err'?'bad':''}"></label>
+      <label class="f" for="i${k}" style="font-size:12px;color:var(--muted);font-weight:400">發票號碼<input id="i${k}" data-ri="${k}" type="text" autocomplete="off" placeholder="FQ68548310" value="${esc(r.i)}"></label>
+    </div>${res[k].msg ? `<div class="msg ${res[k].state==='ok'?'ok':'err'}" id="m${k}">${esc(res[k].msg)}</div>` : `<div class="msg" id="m${k}"></div>`}</div>`).join('');
+  return `<div><h1>新增蝦皮訂單</h1><div class="sub">空刷完成後在這裡登記，一次可加多筆</div></div>
+  <section class="card"><b style="font-size:14px">款項匯入哪個編號</b>
+    <div class="chips" role="radiogroup" aria-label="編號">${codesList().map(c=>`<button class="chip sq" role="radio" aria-checked="${UI.spCode===c}" data-spcode="${c}">${c}</button>`).join('')}</div>
+    <span class="sub" style="font-size:12px">匯入 ${esc(acctShort(UI.spCode))}</span></section>
+  <section class="card" id="sprows"><b style="font-size:14px">訂單</b>${rows}
+    <button class="btn dash" data-act="addRow">＋ 再加一筆</button>
+    <button class="link" data-act="fillSample">填入示範訂單（含 1 筆重複）</button></section>
+  <button class="btn" data-act="submitShopee" id="spSubmit" ${okN?'':'disabled'}>送出 ${okN} 筆</button>
+  <p class="fine" style="margin:0">送出後：倉管理貨 → 後台依補貼比例算出匯款金額 → 事務所週一、週四核對並排入撥款。有問題的訂單不會送出，修正後再送。</p>`;
+}
+
+/* ---------- 畫面：我的資料 / 綁定 ---------- */
+function vMe(){
+  const cards = codesList().map(c => { const a=S.codes[c]; return `<section class="card" style="gap:6px">
+    <div class="row"><b style="font-size:16px">${c}</b><span class="pill ${a.ok?'p-paid':'p-fix'}">${a.ok?'可用於匯款':'分行待確認'}</span></div>
+    <dl class="kv"><dt>銀行</dt><dd>${esc(a.bank)} ${a.bankCode}</dd><dt>分行</dt><dd>${esc(a.branch)} ${a.branchCode || '<span style="color:var(--warn-fg)">（缺代號）</span>'}</dd><dt>戶名</dt><dd>${esc(a.holder)}</dd><dt>帳號</dt><dd>＊＊＊＊＊＊＊＊${a.last4}</dd></dl>
+    ${a.ok?'':'<div class="msg" style="color:var(--warn-fg)">只填了分行名稱，請補 7 碼分行代號，否則可能延後撥款</div>'}
+    <div class="row"><span class="sub" style="font-size:12px">更新於 ${a.updated}</span><button class="link" data-act="fakeLink" style="font-size:14px;min-height:44px">更新帳戶 ›</button></div></section>`; }).join('');
+  return `<div><h1>我的資料</h1><div class="sub">每個編號對應一個收款帳戶，以收款表單最新一筆為準</div></div>
+  <div class="cols3">${cards}</div>
+  <div class="grid2 home-actions"><button class="btn ghost" data-go="bind">綁定既有編號</button><button class="btn dash" data-act="fakeLink">＋ 申請新編號</button></div>
+  <p class="fine" style="margin:0">帳戶更新後套用到下一次彙整；已排入撥款的批次仍匯到原帳戶。</p>
+  <section class="card" style="gap:6px"><h2>空刷購買人資料</h2><div class="sub">${esc(S.user)} · 高雄市三民區＊＊＊＊＊＊</div><button class="link" data-act="fakeLink" style="font-size:14px;min-height:44px">更新購買人資料 ›</button></section>`;
+}
+function vBind(){
+  const rows = codesList().map(c=>`<div class="line"><div class="c"><b>${c}</b><span class="sub" style="font-size:12px">${esc(S.codes[c].bound)}</span></div><span class="pill p-paid">已綁定</span></div>`).join('')
+    + S.pending.map(p=>`<div class="line"><div class="c"><b>${esc(p)}</b><span class="sub" style="font-size:12px">${TODAY} 申請，事務所確認中</span></div><span class="pill p-check">審核中</span></div>`).join('');
+  return `<div><h1>綁定編號</h1><div class="sub">把您已在用的其他編號加到這個帳號，事務所核准後就能一起查看進度與款項</div></div>
+  <form class="card" id="bindForm" novalidate>
+    <label class="f" for="bCode">要綁定的編號<input id="bCode" type="text" autocomplete="off" placeholder="請輸入完整編號，例：B123B"></label>
+    <label class="f" for="bName">該編號的收款戶名<input id="bName" type="text" autocomplete="off" placeholder="與收款表單填寫的戶名相同"></label>
+    <label class="f" for="bTel">收款人電話<input id="bTel" type="tel" autocomplete="off" placeholder="與收款表單填寫的電話相同"></label>
+    ${UI.bindMsg ? `<div class="msg err">${esc(UI.bindMsg)}</div>` : ''}
+    <button class="btn" type="submit">送出綁定申請</button>
+    <p class="fine" style="margin:0">編號要和收款表單上的完全一致（大小寫、後綴都算）。這些資料只用來協助事務所確認是您本人，送出不代表自動通過。</p>
+  </form>
+  <section class="card" style="gap:8px"><h2>我的編號</h2>${rows}</section>`;
+}
+
+/* ---------- 畫面：可買商品 ---------- */
+function vShop(){
+  return `<div><h1>可買商品</h1><div class="sub">已發布的買貨公告（台灣日期當天及前三天）</div></div>
+  <div class="list">${ANN.map(a=>`<article class="item ann"><div class="row"><span class="t">${esc(a.item)}</span><span class="pill p-queue">${esc(a.profit)}</span></div><div class="m"><span>${a.date} 公告 · 收購價 ${money(a.price)}</span></div><div class="mono sub">請款代碼 ${a.code}</div></article>`).join('')}</div>
+  <p class="fine" style="margin:0">利潤為公告載明的預估值，實際以公告條件為準。</p>`;
+}
+
+/* ---------- 畫面：問答（示範規則，正式版接 AI） ---------- */
+function answer(q){
+  const t = q.replace(/\s/g,'');
+  const mine = codesList();
+  const all = S.buy.concat(S.shopee);
+  if (/帳戶|帳號|銀行|分行/.test(t)){
+    const bad = mine.filter(c=>!S.codes[c].ok), good = mine.filter(c=>S.codes[c].ok);
+    return {a:(good.length? good.join('、') + ' 的帳戶可正常匯款。' : '') + (bad.length? '\n' + bad.join('、') + ' 只填了分行名稱，缺 7 碼分行代號，可能延後撥款，建議更新。' : ''), go:['me','前往我的資料']};
+  }
+  if (/怎麼算|補貼|比例|折扣/.test(t)){
+    const ex = S.shopee.filter(it=>it.rate!=null).slice(0,3);
+    return {a:'蝦皮的匯款金額 = 折扣前總額 × 補貼率，四捨五入到元。補貼率依每筆訂單的條件而定（例如 0.88、0.9、0.905、0.91、0.915），倉管理貨後確定。' + (ex.length ? '\n您的訂單：\n' + ex.map(it=>'・' + it.order + '：' + money(it.pre) + ' × ' + it.rate + ' = ' + money(it.amt)).join('\n') : ''), go:['pay','查看款項']};
+  }
+  if (/退貨|移除|取消/.test(t)){
+    const h = all.filter(it=>it.hold);
+    return {a:'還沒有排入撥款的蝦皮訂單，可以在「進度明細」點「移除／申請退貨」，由事務所在後台標註後就不會撥款。已有撥款批次碼的訂單不能退貨。進貨項目不提供線上移除或退貨，有問題請聯繫事務所。' + (h.length ? '\n您目前有 ' + h.length + ' 筆退貨／移除：\n' + h.map(it=>'・' + codeOf(it) + ' ' + (it.title ? it.title + ' × ' + it.qty : '訂單 ' + it.order) + '：' + (it.hold.status==='pending'?'處理中':'已標註')).join('\n') : '')};
+  }
+  if (/重複|擋|被拒/.test(t)) return {a:'同一筆蝦皮訂單只能登記一次，平台會比對所有已登記的訂單。另外，切換日（2026/10/01）前的訂單請依原本方式登記。\n若您認為判斷有誤，請聯繫事務所。'};
+  if (/請款代碼|代碼/.test(t)) return {a:'請在「進貨請款」自行填入這批貨對應買貨公告上的請款代碼（可在「可買商品」查看）。代碼中間的數字是單價，最後 QT 後面是公告數量，例如 P1019TWD2988QT6 是 10/19 公告、單價 2,988。', go:['claim','前往進貨請款']};
+  const fix = all.filter(it => (S.buy.indexOf(it)>=0?statusBuy(it):statusShopee(it))==='fix');
+  if (/補|缺|待補/.test(t)) return {a: fix.length ? '目前有 ' + fix.length + ' 筆待補資料：\n' + fix.map(it=>'・' + codeOf(it) + ' ' + (it.title? it.title + ' × ' + it.qty : '訂單 ' + it.order) + '：' + (S.buy.indexOf(it)>=0?noteBuy(it):noteShopee(it))).join('\n') : '目前沒有待補資料的項目。', go:['claim','前往進貨請款']};
+  if (/匯|錢|撥款|什麼時候|批次|付款/.test(t)){
+    const q2 = all.filter(it => it.batch && !S.batches[it.batch].paid);
+    const by = {}; q2.forEach(it=>{const c=codeOf(it); by[c]=(by[c]||0)+it.amt;});
+    const chk = all.filter(it => (S.buy.indexOf(it)>=0?statusBuy(it):statusShopee(it))==='check');
+    let s = Object.keys(by).length ? '已排入撥款、等公司匯出：\n' + Object.keys(by).map(c=>'・' + c + ' ' + money(by[c]) + '（匯入 ' + acctShort(c) + '）').join('\n') : '目前沒有等待匯款的批次。';
+    if (chk.length) s += '\n\n另有 ' + chk.length + ' 筆待核對，會在 ' + NEXT + ' 彙整。';
+    if (fix.length) s += '\n還有 ' + fix.length + ' 筆待補資料，補齊後才會排入。';
+    return {a:s, go:['pay','查看款項']};
+  }
+  return {a:'我可以回答您自己編號的進度、款項、收款帳戶，以及請款規則。例如「我的錢什麼時候匯？」「有哪些要補資料？」。\n我不能代您修改資料或送出請款。'};
+}
+function vQA(){
+  if (!S.chat.length){ const q='我的錢什麼時候會匯？'; const r=answer(q); S.chat.push({me:q},{ai:r.a,go:r.go}); }
+  const msgs = S.chat.map(m => m.me ? `<div class="bubble me">${esc(m.me)}</div>` : `<div class="bubble ai"><span>${esc(m.ai)}</span>${m.go?`<button class="link" data-qgo="${m.go[0]}">${m.go[1]} ›</button>`:''}</div>`).join('');
+  return `<p class="fine card" style="margin:0;padding:8px 12px">AI 助理只會讀取您已綁定編號（${codesList().join('、')}）的資料，不能代您修改帳戶或送出請款。金額與匯款狀態以「款項」頁為準。<br><b>示範版：</b>回答由預設規則產生，正式版改接 GPT（OpenAI API）。</p>
+  <div class="chat">${msgs}</div>
+  <div class="chips">${['有哪些要補資料？','蝦皮金額怎麼算？','收款帳戶正確嗎？','訂單為什麼被擋？','請款代碼怎麼選？'].map(q=>`<button class="chip" data-q="${q}">${q}</button>`).join('')}</div>
+  <form class="ask" id="askForm"><label for="askIn" style="flex:1;display:flex"><span hidden>輸入問題</span><input id="askIn" type="text" autocomplete="off" placeholder="輸入問題，例如：我的錢什麼時候會匯？"></label><button class="send" type="submit" aria-label="送出"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></button></form>`;
+}
+function ask(q){ if(!q.trim()) return; const r=answer(q); S.chat.push({me:q},{ai:r.a,go:r.go}); render(); window.scrollTo(0,document.body.scrollHeight); }
+
+/* ---------- 示範操作：模擬後台事件 ---------- */
+const MONTH = 'JFMAMJJASOND';
+function openDemo(){
+  const el = document.getElementById('sheet');
+  el.innerHTML = `<div class="sheet-wrap" data-act="closeDemo"><div class="sheet" role="dialog" aria-modal="true" aria-label="示範操作">
+    <div class="row"><h2>示範操作</h2><button class="link" data-act="closeDemo" style="font-size:15px;min-height:44px">關閉</button></div>
+    <p class="fine" style="margin:0">模擬後台和其他人的動作，看刷手畫面怎麼變化。</p>
+    <button class="op" data-demo="calc"><b>① 倉管理貨／後台算出金額</b><span>待補資料中「金額未算出」的進貨和蝦皮訂單，算出匯款金額</span></button>
+    <button class="op" data-demo="batch"><b>② 事務所週一彙整、出匯款檔</b><span>待核對且收款帳戶可用的項目，排入 11/2 批次（進貨、蝦皮分開）</span></button>
+    <button class="op" data-demo="paid"><b>③ Eddie 在網銀放行並標記匯款</b><span>所有待匯款批次標記為 11/3 已匯款</span></button>
+    <button class="op" data-demo="acct"><b>④ C2001 補上 7 碼分行代號</b><span>收款帳戶改為可用於匯款</span></button>
+    <button class="op" data-demo="approve"><b>⑤ 事務所核准綁定申請</b><span>審核中的編號改為已綁定</span></button>
+    <button class="op" data-demo="hold"><b>⑥ 事務所標註退貨／移除</b><span>處理中的申請改為已標註（後台撥款備註填「退貨」），不會撥款</span></button>
+    <button class="op" data-demo="reset"><b>重設示範資料</b><span>回到一開始的狀態</span></button>
+  </div></div>`;
+  el.hidden = false; el.querySelector('[data-demo]').focus();
+}
+function closeDemo(){ const el=document.getElementById('sheet'); el.hidden=true; el.innerHTML=''; }
+function demo(k){
+  if (k==='reset'){ location.reload(); return; }
+  if (k==='calc'){
+    let n=0;
+    S.buy.forEach(it=>{ if(it.claim && !it.amt && !it.batch && !it.hold){ const p=parseClaim(it.claim); it.amt = p ? p.price*it.qty : 0; n++; } });
+    S.shopee.forEach(it=>{ if(it.amt==null && !it.hold){ it.rate = it.rate || 0.91; it.amt = Math.round(it.pre*it.rate); n++; } });
+    toast(n ? '已算出 ' + n + ' 筆金額' : '沒有待計算的項目');
+  }
+  if (k==='batch'){
+    let msg=[];
+    [['buy',S.buy,statusBuy,'進貨'],['shopee',S.shopee,statusShopee,'蝦皮']].forEach(([kind,list,fn,name])=>{
+      const pick = list.filter(it => fn(it)==='check' && S.codes[codeOf(it)] && S.codes[codeOf(it)].ok);
+      if (!pick.length) return;
+      const total = Math.round(pick.reduce((s,it)=>s+it.amt,0));
+      let code = '02' + MONTH[10] + total; while (S.batches[code]) code += '1';
+      S.batches[code] = {kind:kind,date:'11/2',paid:null};
+      pick.forEach(it=>it.batch=code);
+      msg.push(name + ' ' + pick.length + ' 筆');
+    });
+    toast(msg.length ? '已排入 11/2 批次：' + msg.join('、') : '沒有可排入的項目');
+  }
+  if (k==='paid'){
+    let n=0; Object.keys(S.batches).forEach(c=>{ if(!S.batches[c].paid){ S.batches[c].paid='11/3'; n++; } });
+    toast(n ? n + ' 個批次已標記匯款' : '沒有待匯款的批次');
+  }
+  if (k==='hold'){
+    let n=0; S.buy.concat(S.shopee).forEach(it=>{ if(it.hold && it.hold.status==='pending'){ it.hold.status='done'; it.hold.doneDate=TODAY; n++; } });
+    toast(n ? '已標註 ' + n + ' 筆退貨／移除' : '目前沒有待處理的申請');
+  }
+  if (k==='acct'){ S.codes.C2001.ok=true; S.codes.C2001.branchCode='2208'; S.codes.C2001.branch='三民'; S.codes.C2001.updated='2026/10/30'; toast('C2001 收款帳戶已可用於匯款'); }
+  if (k==='approve'){
+    if (!S.pending.length){ toast('目前沒有審核中的綁定申請'); }
+    else { S.pending.forEach(c=>{ S.codes[c]={bank:'台新銀行',bankCode:'812',branch:'建北',branchCode:'0687',holder:S.user,last4:'7720',ok:true,updated:'2026/10/30',bound:'核准於 2026/10/30'}; }); toast(S.pending.join('、') + ' 已綁定'); S.pending=[]; }
+  }
+  closeDemo(); render();
+}
+
+/* ---------- 主繪製與事件 ---------- */
+function render(){
+  renderTop(); renderTabs();
+  const v = UI.page || UI.tab;
+  const map = {home:vHome, pay:vPay, me:vMe, qa:vQA, shop:vShop, detail:vDetail, claim:vClaim, shopee:vShopee, bind:vBind};
+  const view = document.getElementById('view');
+  view.className = ['qa','shopee','bind'].indexOf(v)>=0 ? 'narrow' : '';
+  view.innerHTML = (map[v]||vHome)();
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('button,[data-act="closeDemo"]'); if (!b) return;
+  const d = b.dataset;
+  if (d.act==='closeDemo' && (b.tagName==='BUTTON' || e.target===b)) { closeDemo(); return; }
+  if (b.tagName!=='BUTTON') return;
+  if (d.tab) return go(d.tab);
+  if (d.go) return go(d.go==='bind'?'me':'home', d.go);
+  if (d.detail){ UI.dKind=d.detail; UI.dFilter='all'; return go('home','detail'); }
+  if (d.code){ UI.code=d.code; return render(); }
+  if (d.dkind){ UI.dKind=d.dkind; UI.dFilter='all'; return render(); }
+  if (d.dcode){ UI.dCode=d.dcode; return render(); }
+  if (d.dfilter){ UI.dFilter=d.dfilter; return render(); }
+  if (d.edit){ UI.edit[d.edit] = true; delete UI.cf[d.edit]; return go('home','claim'); }
+  if (d.unedit){ delete UI.edit[d.unedit]; delete UI.cf[d.unedit]; return render(); }
+  if (d.copy){ const from = UI.cf[d.from]; if (from){ UI.cf[d.copy] = {payee:from.payee, code:from.code, inv:from.inv}; } return render(); }
+  if (d.spcode){ UI.spCode=d.spcode; return render(); }
+  if (d.q) return ask(d.q);
+  if (d.qgo) return d.qgo==='claim' ? go('home','claim') : go(d.qgo);
+  if (d.demo) return demo(d.demo);
+  if (d.hopen){ UI.holdOpen=d.hopen; UI.holdType='return'; return render(); }
+  if (d.htype){ const v=document.querySelector('[id^="hr_"]'); UI.holdReason = v ? v.value : ''; UI.holdType=d.htype; render(); const n=document.querySelector('[id^="hr_"]'); if(n) n.value=UI.holdReason||''; return; }
+  if (d.hsubmit){ const it=findItem(d.hsubmit); const r=document.getElementById('hr_'+d.hsubmit); if(it && !it.batch){ it.hold={type:UI.holdType,status:'pending',date:TODAY,reason:r?r.value.trim():''}; toast('已送出' + HOLDNAME[UI.holdType] + '申請，等待事務所標註'); } UI.holdOpen=null; return render(); }
+  if (d.hwithdraw){ const it=findItem(d.hwithdraw); if(it && it.hold && it.hold.status==='pending'){ it.hold=null; toast('已撤回申請'); } return render(); }
+  switch(d.act){
+    case 'back': return go(UI.tab);
+    case 'demo': return openDemo();
+    case 'holdCancel': UI.holdOpen=null; return render();
+    case 'fakeLink': return toast('示範版未開放此功能');
+    case 'addRow': UI.spRows.push({o:'',i:''}); render(); { const el=document.getElementById('o'+(UI.spRows.length-1)); if(el) el.focus(); } return;
+    case 'fillSample': UI.spRows=[{o:'2610300ABCD123',i:'XX23456781'},{o:'2610300ABCD124',i:'XX23456782'},{o:'2610210EFGH456',i:'XX12340001'}]; return render();
+    case 'submitShopee': {
+      const keep=[]; let n=0;
+      UI.spRows.forEach((r,k)=>{ const c=checkOrder(r.o,r.i,k); if(c.state==='ok'){ S.shopee.unshift({id:'n'+Date.now()+k,payee:UI.spCode,order:r.o.trim().toUpperCase(),inv:r.i.trim().toUpperCase(),pre:20188,amt:null,batch:null}); n++; } else if(c.state==='err') keep.push(r); });
+      UI.spRows = keep.length ? keep : [{o:'',i:''}];
+      toast('已送出 ' + n + ' 筆訂單' + (keep.length ? '，' + keep.length + ' 筆有問題留在表單上' : ''));
+      return render();
+    }
+    case 'submitClaim': {
+      let n = 0; const over = [];
+      claimTodo().forEach(it => { const f = cf(it); if (cfDone(f)){
+        if (it.claim) over.push(it.box);
+        // 以箱號為唯一碼：同一箱再次送出時覆蓋原本的請款代碼、發票、撥款編號
+        it.claim = f.code.trim().toUpperCase(); it.inv = f.inv.trim().toUpperCase(); it.payee = f.payee; it.amt = null;
+        delete UI.cf[it.id]; delete UI.edit[it.id]; n++; } });
+      toast('已送出 ' + n + ' 筆請款' + (over.length ? '（箱號 ' + over.join('、') + ' 已覆蓋舊資料）' : '') + '，等後台算出金額');
+      return render();
+    }
+  }
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.cf && t.dataset.field==='payee'){ UI.cf[t.dataset.cf].payee = t.value; return; }
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.dataset.cf && (t.dataset.field==='code' || t.dataset.field==='inv')){
+    const id = t.dataset.cf, f = UI.cf[id]; f[t.dataset.field] = t.value;
+    if (t.dataset.field==='code'){ const it = findItem(id); document.getElementById('ch_'+id).innerHTML = codeHint(t.value, it.qty); }
+    else t.classList.toggle('bad', !!t.value && !INV_RE.test(t.value.trim().toUpperCase()));
+    updClaim(); return;
+  }
+  if (t.dataset.ro!=null || t.dataset.ri!=null){
+    const k = +(t.dataset.ro!=null ? t.dataset.ro : t.dataset.ri);
+    if (t.dataset.ro!=null) UI.spRows[k].o=t.value; else UI.spRows[k].i=t.value;
+    // 即時更新檢查訊息與送出按鈕，不重繪以保留游標
+    const res = UI.spRows.map((r,j)=>checkOrder(r.o,r.i,j));
+    res.forEach((r,j)=>{ const m=document.getElementById('m'+j), o=document.getElementById('o'+j); if(m){ m.textContent=r.msg||''; m.className='msg '+(r.state==='ok'?'ok':r.state==='err'?'err':''); } if(o) o.classList.toggle('bad', r.state==='err'); });
+    const ok = res.filter(r=>r.state==='ok').length; const btn=document.getElementById('spSubmit'); if(btn){ btn.textContent='送出 '+ok+' 筆'; btn.disabled=!ok; }
+  }
+});
+document.addEventListener('submit', e => {
+  e.preventDefault();
+  if (e.target.id==='askForm'){ const i=document.getElementById('askIn'); const q=i.value; i.value=''; ask(q); }
+  if (e.target.id==='bindForm'){
+    const c=document.getElementById('bCode').value.trim().toUpperCase(), n=document.getElementById('bName').value.trim(), t=document.getElementById('bTel').value.trim();
+    if (!c || !n || !t){ UI.bindMsg='三個欄位都要填寫'; return render(); }
+    if (S.codes[c] || S.pending.indexOf(c)>=0){ UI.bindMsg = c + ' 已經在您的編號清單中'; return render(); }
+    UI.bindMsg=''; S.pending.push(c); toast(c + ' 綁定申請已送出，等待事務所確認'); render();
+  }
+});
+document.addEventListener('keydown', e => { if (e.key==='Escape' && !document.getElementById('sheet').hidden) closeDemo(); });
+render();
+})();
+</script>
+</body>
+</html>
