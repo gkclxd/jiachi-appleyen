@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>小顏選刷手平台</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<title>小顏選刷手平台（示範）</title>
+<meta name="description" content="小顏選刷手平台可操作示範：進度、款項、進貨請款、蝦皮訂單登記、綁定編號與問答。所有資料皆為虛構。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
 <style>
@@ -212,13 +212,13 @@ const S = {
     {id:'b9', box:'K17501', recv:'B123', payee:'B123', title:'AirTag 4 入', qty:3, date:'10/14', claim:'K1010TWD3100QT3',  inv:'XX23410007', amt:9300,  batch:'27O1835000'}
   ],
   shopee:[
-    {id:'s6', payee:'B123', order:'2610290K1L2M3N', inv:'XX55550006', pre:20188, rate:null,  amt:null,  batch:null},
-    {id:'s7', payee:'C2001',order:'2610220X7Y8Z9A', inv:'XX55550007', pre:19888, rate:null,  amt:null,  batch:null, hold:{type:'return',status:'done',date:'10/23',doneDate:'10/24',reason:'買家取消訂單'}},
-    {id:'s1', payee:'C2001',order:'2610260A1B2C3D', inv:'XX55550001', pre:20188, rate:0.9,   amt:18169, batch:null},
-    {id:'s2', payee:'B123', order:'2610250E5F6G7H', inv:'XX55550002', pre:19888, rate:0.91,  amt:18098, batch:null},
-    {id:'s3', payee:'B123', order:'2610210EFGH456', inv:'XX55550003', pre:59664, rate:0.91,  amt:54294, batch:'30O8242206'},
-    {id:'s4', payee:'C2001',order:'2610200P9Q8R7S', inv:'XX55550004', pre:55888, rate:0.905, amt:50579, batch:'30O8242206'},
-    {id:'s5', payee:'C2001',order:'2610150T1U2V3W', inv:'XX55550005', pre:21284, rate:0.91,  amt:19368, batch:'23O2610167'}
+    {id:'s6', payee:'B123', order:'2610290K1L2M3N', inv:'XX55550006', preSelf:20188, pre:null, whPre:19888, rate:null,  amt:null,  batch:null},
+    {id:'s7', payee:'C2001',order:'2610220X7Y8Z9A', inv:'XX55550007', preSelf:19888, pre:null, rate:null,  amt:null,  batch:null, hold:{type:'return',status:'done',date:'10/23',doneDate:'10/24',reason:'買家取消訂單'}},
+    {id:'s1', payee:'C2001',order:'2610260A1B2C3D', inv:'XX55550001', preSelf:20188, pre:20188, rate:0.9,   amt:18169, batch:null},
+    {id:'s2', payee:'B123', order:'2610250E5F6G7H', inv:'XX55550002', preSelf:19988, pre:19888, rate:0.91,  amt:18098, batch:null},
+    {id:'s3', payee:'B123', order:'2610210EFGH456', inv:'XX55550003', preSelf:59664, pre:59664, rate:0.91,  amt:54294, batch:'30O8242206'},
+    {id:'s4', payee:'C2001',order:'2610200P9Q8R7S', inv:'XX55550004', preSelf:55888, pre:55888, rate:0.905, amt:50579, batch:'30O8242206'},
+    {id:'s5', payee:'C2001',order:'2610150T1U2V3W', inv:'XX55550005', preSelf:21284, pre:21284, rate:0.91,  amt:19368, batch:'23O2610167'}
   ],
   chat:[]
 };
@@ -263,7 +263,7 @@ function codesList(){ return Object.keys(S.codes); }
 function acctShort(c){ const a=S.codes[c]; return a ? a.bank.replace('銀行','') + ' ＊' + a.last4 : '未填收款帳戶'; }
 
 /* ---------- 路由與共用框架 ---------- */
-const UI = {tab:'home', page:null, code:'all', dKind:'buy', dCode:'all', dFilter:'all', sel:{}, cf:{}, edit:{}, spCode:'B123', spRows:[{o:'',i:''}], spMsgs:[], bindMsg:''};
+const UI = {tab:'home', page:null, code:'all', dKind:'buy', dCode:'all', dFilter:'all', sel:{}, cf:{}, edit:{}, spCode:'B123', spRows:[{o:'',i:'',a:''}], spMsgs:[], bindMsg:''};
 const ICON = {
   shop:'<path d="M4 7h16l-1.5 11h-13z"/><path d="M9 7a3 3 0 0 1 6 0"/>',
   home:'<path d="M4 20V10l8-6 8 6v10"/><path d="M10 20v-5h4v5"/>',
@@ -372,7 +372,7 @@ function vDetail(){
     const title = isBuy ? `${esc(it.title)} × ${it.qty}` : `訂單 <span class="mono">${esc(it.order)}</span>`;
     const meta = isBuy ? `箱號 ${it.box} · ${it.date} 到倉${it.claim?' · <span class="mono">'+esc(it.claim)+'</span>':''}` : `20${it.order.slice(0,2)}/${it.order.slice(2,4)}/${it.order.slice(4,6)} · 發票 ${esc(it.inv)}`;
     return `<article class="item"><div class="row"><div class="row" style="justify-content:flex-start;min-width:0;gap:6px"><span class="tag">${codeOf(it)}</span><span class="t">${title}</span></div><span class="pill p-${st}">${LABEL[st]}</span></div>
-      <div class="m"><span>${meta}</span><b>${it.amt?money(it.amt):'—'}</b></div>${isBuy ? '' : `<div class="calc">${it.rate!=null ? `折扣前 ${money(it.pre)} × ${it.rate} = <b>${money(it.amt)}</b>` : `折扣前 ${money(it.pre)} × 補貼率（理貨後確定）`}</div>`}<div class="note ${st==='fix'?'warn':''}">${esc(isBuy?noteBuy(it):noteShopee(it))}</div>${isBuy ? (it.claim && !it.batch ? `<div class="row" style="justify-content:flex-end"><button class="link" data-edit="${it.id}">修改請款資料 ›</button></div>` : '') : actions(it, st)}</article>`;
+      <div class="m"><span>${meta}</span><b>${it.amt?money(it.amt):'—'}</b></div>${isBuy ? '' : `<div class="calc">${it.rate!=null ? `倉管金額 ${money(it.pre)} × ${it.rate} = <b>${money(it.amt)}</b>` : `折扣前 ${money(it.preSelf)}（您填寫）× 補貼率（理貨後確定）`}</div>${it.rate!=null && it.preSelf!==it.pre ? `<div class="msg" style="color:var(--warn-fg)">您填寫的折扣前金額是 ${money(it.preSelf)}，以倉管資料 ${money(it.pre)} 為準</div>` : ''}`}<div class="note ${st==='fix'?'warn':''}">${esc(isBuy?noteBuy(it):noteShopee(it))}</div>${isBuy ? (it.claim && !it.batch ? `<div class="row" style="justify-content:flex-end"><button class="link" data-edit="${it.id}">修改請款資料 ›</button></div>` : '') : actions(it, st)}</article>`;
   }).join('') || '<div class="empty">這個條件目前沒有資料</div>';
   return `<h1>進度明細</h1>
   <div class="seg" role="tablist" aria-label="類別"><button role="tab" aria-selected="${isBuy}" data-dkind="buy">進貨</button><button role="tab" aria-selected="${!isBuy}" data-dkind="shopee">蝦皮空刷</button></div>
@@ -423,25 +423,27 @@ function vClaim(){
 function updClaim(){ const n = claimCount(); const b = document.getElementById('claimSubmit'); if (b){ b.disabled = !n; b.textContent = '送出已填好的 ' + n + ' 筆'; } }
 
 /* ---------- 畫面：新增蝦皮訂單 ---------- */
-function checkOrder(o, i, idx){
-  o = o.trim().toUpperCase(); i = i.trim().toUpperCase();
-  if (!o && !i) return {state:'blank'};
+function checkOrder(o, i, idx, a){
+  o = o.trim().toUpperCase(); i = i.trim().toUpperCase(); a = String(a||'').replace(/[,\s$]/g,'');
+  if (!o && !i && !a) return {state:'blank'};
   if (!/^\d{6}[A-Z0-9]{8}$/.test(o)) return {state:'err', msg:'訂單編號應為 14 碼，前 6 碼是日期，例：2610300ABCD123'};
   if (o.slice(0,6) < SHOPEE_CUTOVER) return {state:'err', msg:'這是切換日前的訂單，請依原本方式登記'};
   const hit = S.shopee.find(s=>s.order===o);
   if (hit) return {state:'err', msg:'這筆訂單已由 ' + hit.payee + ' 登記過，請勿重複'};
   if (UI.spRows.some((r,k)=>k<idx && r.o.trim().toUpperCase()===o)) return {state:'err', msg:'這次已經填過這筆訂單'};
   if (!/^[A-Z]{2}\d{8}$/.test(i)) return {state:'err', msg:'發票號碼格式為 2 個英文字母加 8 位數字'};
-  return {state:'ok', msg:'格式正確'};
+  if (!/^\d+$/.test(a) || +a <= 0) return {state:'err', msg:'請填寫折扣前金額（整數，例：19888）'};
+  return {state:'ok', msg:'格式正確 · 折扣前 ' + money(+a) + '（理貨後以倉管金額 × 補貼率計算）'};
 }
 function vShopee(){
-  const res = UI.spRows.map((r,k)=>checkOrder(r.o,r.i,k));
+  const res = UI.spRows.map((r,k)=>checkOrder(r.o,r.i,k,r.a));
   const okN = res.filter(r=>r.state==='ok').length;
   const rows = UI.spRows.map((r,k) => `<div style="display:flex;flex-direction:column;gap:6px;padding-bottom:10px;border-bottom:1px solid var(--line-soft)">
     <div class="grid2" style="gap:6px">
       <label class="f" for="o${k}" style="font-size:12px;color:var(--muted);font-weight:400">訂單編號<input id="o${k}" data-ro="${k}" type="text" autocomplete="off" placeholder="2610300ABCD123" value="${esc(r.o)}" class="${res[k].state==='err'?'bad':''}"></label>
       <label class="f" for="i${k}" style="font-size:12px;color:var(--muted);font-weight:400">發票號碼<input id="i${k}" data-ri="${k}" type="text" autocomplete="off" placeholder="FQ68548310" value="${esc(r.i)}"></label>
-    </div>${res[k].msg ? `<div class="msg ${res[k].state==='ok'?'ok':'err'}" id="m${k}">${esc(res[k].msg)}</div>` : `<div class="msg" id="m${k}"></div>`}</div>`).join('');
+    </div>
+    <label class="f" for="a${k}" style="font-size:12px;color:var(--muted);font-weight:400">折扣前金額<input id="a${k}" data-ra="${k}" type="text" inputmode="numeric" autocomplete="off" placeholder="訂單折扣前總額，例：19888" value="${esc(r.a)}"></label>${res[k].msg ? `<div class="msg ${res[k].state==='ok'?'ok':'err'}" id="m${k}">${esc(res[k].msg)}</div>` : `<div class="msg" id="m${k}"></div>`}</div>`).join('');
   return `<div><h1>新增蝦皮訂單</h1><div class="sub">空刷完成後在這裡登記，一次可加多筆</div></div>
   <section class="card"><b style="font-size:14px">款項匯入哪個編號</b>
     <div class="chips" role="radiogroup" aria-label="編號">${codesList().map(c=>`<button class="chip sq" role="radio" aria-checked="${UI.spCode===c}" data-spcode="${c}">${c}</button>`).join('')}</div>
@@ -499,7 +501,7 @@ function answer(q){
   }
   if (/怎麼算|補貼|比例|折扣/.test(t)){
     const ex = S.shopee.filter(it=>it.rate!=null).slice(0,3);
-    return {a:'蝦皮的匯款金額 = 折扣前總額 × 補貼率，四捨五入到元。補貼率依每筆訂單的條件而定（例如 0.88、0.9、0.905、0.91、0.915），倉管理貨後確定。' + (ex.length ? '\n您的訂單：\n' + ex.map(it=>'・' + it.order + '：' + money(it.pre) + ' × ' + it.rate + ' = ' + money(it.amt)).join('\n') : ''), go:['pay','查看款項']};
+    return {a:'登記訂單時，折扣前金額先由您填寫。倉管理貨後，匯款金額改以「倉管資料庫的金額 × 補貼率」計算，四捨五入到元；兩者不同時以倉管資料為準。補貼率依每筆訂單的條件而定（例如 0.88、0.9、0.905、0.91、0.915）。' + (ex.length ? '\n您的訂單：\n' + ex.map(it=>'・' + it.order + '：' + money(it.pre) + ' × ' + it.rate + ' = ' + money(it.amt)).join('\n') : ''), go:['pay','查看款項']};
   }
   if (/退貨|移除|取消/.test(t)){
     const h = all.filter(it=>it.hold);
@@ -537,7 +539,7 @@ function openDemo(){
   el.innerHTML = `<div class="sheet-wrap" data-act="closeDemo"><div class="sheet" role="dialog" aria-modal="true" aria-label="示範操作">
     <div class="row"><h2>示範操作</h2><button class="link" data-act="closeDemo" style="font-size:15px;min-height:44px">關閉</button></div>
     <p class="fine" style="margin:0">模擬後台和其他人的動作，看刷手畫面怎麼變化。</p>
-    <button class="op" data-demo="calc"><b>① 倉管理貨／後台算出金額</b><span>待補資料中「金額未算出」的進貨和蝦皮訂單，算出匯款金額</span></button>
+    <button class="op" data-demo="calc"><b>① 倉管理貨／後台算出金額</b><span>進貨依請款代碼計算；蝦皮改用倉管資料庫金額 × 補貼率（B123 的 2610290K… 倉管金額和刷手填的不同）</span></button>
     <button class="op" data-demo="batch"><b>② 事務所週一彙整、出匯款檔</b><span>待核對且收款帳戶可用的項目，排入 11/2 批次（進貨、蝦皮分開）</span></button>
     <button class="op" data-demo="paid"><b>③ Eddie 在網銀放行並標記匯款</b><span>所有待匯款批次標記為 11/3 已匯款</span></button>
     <button class="op" data-demo="acct"><b>④ C2001 補上 7 碼分行代號</b><span>收款帳戶改為可用於匯款</span></button>
@@ -553,7 +555,7 @@ function demo(k){
   if (k==='calc'){
     let n=0;
     S.buy.forEach(it=>{ if(it.claim && !it.amt && !it.batch && !it.hold){ const p=parseClaim(it.claim); it.amt = p ? p.price*it.qty : 0; n++; } });
-    S.shopee.forEach(it=>{ if(it.amt==null && !it.hold){ it.rate = it.rate || 0.91; it.amt = Math.round(it.pre*it.rate); n++; } });
+    S.shopee.forEach(it=>{ if(it.amt==null && !it.hold){ it.pre = it.whPre || it.preSelf; it.rate = it.rate || 0.91; it.amt = Math.round(it.pre*it.rate); n++; } });
     toast(n ? '已算出 ' + n + ' 筆金額' : '沒有待計算的項目');
   }
   if (k==='batch'){
@@ -622,12 +624,12 @@ document.addEventListener('click', e => {
     case 'demo': return openDemo();
     case 'holdCancel': UI.holdOpen=null; return render();
     case 'fakeLink': return toast('示範版未開放此功能');
-    case 'addRow': UI.spRows.push({o:'',i:''}); render(); { const el=document.getElementById('o'+(UI.spRows.length-1)); if(el) el.focus(); } return;
-    case 'fillSample': UI.spRows=[{o:'2610300ABCD123',i:'XX23456781'},{o:'2610300ABCD124',i:'XX23456782'},{o:'2610210EFGH456',i:'XX12340001'}]; return render();
+    case 'addRow': UI.spRows.push({o:'',i:'',a:''}); render(); { const el=document.getElementById('o'+(UI.spRows.length-1)); if(el) el.focus(); } return;
+    case 'fillSample': UI.spRows=[{o:'2610300ABCD123',i:'XX23456781',a:'19888'},{o:'2610300ABCD124',i:'XX23456782',a:'20,188'},{o:'2610210EFGH456',i:'XX12340001',a:'59664'}]; return render();
     case 'submitShopee': {
       const keep=[]; let n=0;
-      UI.spRows.forEach((r,k)=>{ const c=checkOrder(r.o,r.i,k); if(c.state==='ok'){ S.shopee.unshift({id:'n'+Date.now()+k,payee:UI.spCode,order:r.o.trim().toUpperCase(),inv:r.i.trim().toUpperCase(),pre:20188,amt:null,batch:null}); n++; } else if(c.state==='err') keep.push(r); });
-      UI.spRows = keep.length ? keep : [{o:'',i:''}];
+      UI.spRows.forEach((r,k)=>{ const c=checkOrder(r.o,r.i,k,r.a); if(c.state==='ok'){ S.shopee.unshift({id:'n'+Date.now()+k,payee:UI.spCode,order:r.o.trim().toUpperCase(),inv:r.i.trim().toUpperCase(),preSelf:+String(r.a).replace(/[,\s$]/g,''),pre:null,rate:null,amt:null,batch:null}); n++; } else if(c.state==='err') keep.push(r); });
+      UI.spRows = keep.length ? keep : [{o:'',i:'',a:''}];
       toast('已送出 ' + n + ' 筆訂單' + (keep.length ? '，' + keep.length + ' 筆有問題留在表單上' : ''));
       return render();
     }
@@ -655,11 +657,11 @@ document.addEventListener('input', e => {
     else t.classList.toggle('bad', !!t.value && !INV_RE.test(t.value.trim().toUpperCase()));
     updClaim(); return;
   }
-  if (t.dataset.ro!=null || t.dataset.ri!=null){
-    const k = +(t.dataset.ro!=null ? t.dataset.ro : t.dataset.ri);
-    if (t.dataset.ro!=null) UI.spRows[k].o=t.value; else UI.spRows[k].i=t.value;
+  if (t.dataset.ro!=null || t.dataset.ri!=null || t.dataset.ra!=null){
+    const k = +(t.dataset.ro!=null ? t.dataset.ro : t.dataset.ri!=null ? t.dataset.ri : t.dataset.ra);
+    if (t.dataset.ro!=null) UI.spRows[k].o=t.value; else if (t.dataset.ri!=null) UI.spRows[k].i=t.value; else UI.spRows[k].a=t.value;
     // 即時更新檢查訊息與送出按鈕，不重繪以保留游標
-    const res = UI.spRows.map((r,j)=>checkOrder(r.o,r.i,j));
+    const res = UI.spRows.map((r,j)=>checkOrder(r.o,r.i,j,r.a));
     res.forEach((r,j)=>{ const m=document.getElementById('m'+j), o=document.getElementById('o'+j); if(m){ m.textContent=r.msg||''; m.className='msg '+(r.state==='ok'?'ok':r.state==='err'?'err':''); } if(o) o.classList.toggle('bad', r.state==='err'); });
     const ok = res.filter(r=>r.state==='ok').length; const btn=document.getElementById('spSubmit'); if(btn){ btn.textContent='送出 '+ok+' 筆'; btn.disabled=!ok; }
   }
